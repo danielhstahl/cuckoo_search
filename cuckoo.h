@@ -156,9 +156,6 @@ namespace cuckoo{
         std::vector<double> tmpParams(numParams, 10000000);
 
         double fMin=getInitBestNest(nest, &fnResult, &bestParams, objFn);
-        std::cout<<fnResult[0]<<", "<<fnResult[n-1]<<std::endl;
-        std::cout<<fMin<<std::endl;
-        std::cout<<bestParams[0]<<", "<<bestParams[1]<<std::endl;
         double fNew;
         for(int i=0; i<totalMC; ++i){
             /**Completely overwrites newNest*/
