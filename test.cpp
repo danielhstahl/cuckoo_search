@@ -79,7 +79,7 @@ TEST_CASE("Test Simple Function", "[Cuckoo]"){
     auto results=cuckoo::optimize([](const std::vector<double>& inputs){
         return inputs[0]*inputs[0]+inputs[1]*inputs[1]+inputs[2]*inputs[2]+inputs[3]*inputs[3];
     }, ul, 20, 1000, 42);
-    auto params=std::get<1>(results);
+    auto params=std::get<cuckoo::optparms>(results);
     std::cout<<params[0]<<", "<<params[1]<<std::endl;
-    REQUIRE(std::get<0>(results)==Approx(0.0));
+    REQUIRE(std::get<cuckoo::fnval>(results)==Approx(0.0));
 }  

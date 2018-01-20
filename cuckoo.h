@@ -5,6 +5,8 @@
 #include "SimulateNorm.h"
 
 namespace cuckoo{
+    constexpr int optparms=0;
+    constexpr int fnval=1;
     template<typename T>
     struct upper_lower{
         T upper;
@@ -38,8 +40,8 @@ namespace cuckoo{
     auto getUniform(){
         return (double)rand()/RAND_MAX;
     }
-    template<typename T>
-    auto getRandomParameters(const std::vector<upper_lower<T> >& ul){
+    template<typename Array>
+    auto getRandomParameters(const Array& ul){
         return futilities::for_each(0, (int)ul.size(), [&](const auto& index){
             return getRandomParameter(ul[index].lower, ul[index].upper, getUniform());
         });
@@ -90,12 +92,12 @@ namespace cuckoo{
     }
 
     template<
-        typename Nest, typename BestParameter, typename T, 
+        typename Nest, typename BestParameter, typename Array, 
         typename U, typename Norm, typename Unif
     >
     void getCuckoos(
         Nest* newNest, const Nest& nest, const BestParameter& best, 
-        const std::vector<upper_lower<T > >& ul, 
+        const Array& ul, 
         const U& alpha, 
         Unif&& unif,
         Norm&& norm
@@ -115,8 +117,8 @@ namespace cuckoo{
     }
 
 
-    template< typename T>
-    auto getNewNest(const std::vector<upper_lower<T> >& ul, int n){
+    template<typename Array>
+    auto getNewNest(const Array& ul, int n){
         return futilities::for_each(0, n, [&](const auto& index){
             return getRandomParameters(ul);
         });
@@ -127,8 +129,8 @@ namespace cuckoo{
         return pMax-(pMax-pMin)*index/n;
     }
 
-    template<typename Nest, typename P, typename T>
-    void emptyNests(Nest* newNest, const Nest& nest, const std::vector<upper_lower<T> >& ul, const P& p){
+    template<typename Nest, typename P, typename Array>
+    void emptyNests(Nest* newNest, const Nest& nest, const Array& ul, const P& p){
         int n=nest.size();
         Nest& nestRef= *newNest;
         for(int i=0; i<n; ++i){
@@ -139,8 +141,8 @@ namespace cuckoo{
     }
 
 
-    template<typename ObjFn, typename T>
-    auto optimize(const ObjFn& objFn, const std::vector<upper_lower<T> >& ul, int n, int totalMC, int seed){
+    template< typename Array, typename ObjFn>
+    auto optimize(const ObjFn& objFn, const Array& ul, int n, int totalMC, int seed){
         int numParams=ul.size();
         srand(seed);
         auto nest=getNewNest(ul, n);
@@ -184,7 +186,7 @@ namespace cuckoo{
                 bestParams=tmpParams;
             }
         }
-        return std::make_tuple(fMin, bestParams);
+        return std::make_tuple(bestParams, fMin);
     }
 }
 
