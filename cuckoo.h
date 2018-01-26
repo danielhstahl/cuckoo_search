@@ -46,15 +46,24 @@ namespace cuckoo{
             return getRandomParameter(ul[index].lower, ul[index].upper, getUniform());
         });
     }
+    template<typename Array>
+    Array getMaxOfV(Array&& arr1, Array&& arr2){
+        return futilities::for_each(arr1, [&](const auto& val, const auto& index){
+            return val<arr2[index]?val:arr2[index];
+        });
+    }
+    
     template<typename Nest, typename ObjFn, typename FnResultArray, typename BestParameter>
     double getBestNest(Nest* nest, FnResultArray* fnResult, BestParameter* bestParam, const Nest& newNest, const ObjFn& objFn){
         Nest& nestRef= *nest;
         FnResultArray& fnResultRef= *fnResult;
         BestParameter& bestParamRef= *bestParam;
+        auto result=futilities::for_each_parallel(0, (int)nestRef.size(), [&](const auto& index){
+            return objFn(newNest[index]);
+        });
         for(int i=0; i<nestRef.size(); ++i){
-            auto newFnResult=objFn(newNest[i]);
-            if(newFnResult<=fnResultRef[i]){
-                fnResultRef[i]=newFnResult;
+            if(result[i]<=fnResultRef[i]){
+                fnResultRef[i]=result[i];
                 nestRef[i]=newNest[i];
             }
         }
@@ -69,14 +78,17 @@ namespace cuckoo{
         bestParamRef=nestRef[indexOfMin];
         return min;
     }
+    
     template<typename Nest, typename ObjFn, typename FnResultArray, typename BestParameter>
     double getInitBestNest(const Nest& nest, FnResultArray* fnResult, BestParameter* bestParam, const ObjFn& objFn){
         FnResultArray& fnResultRef= *fnResult;
         BestParameter& bestParamRef= *bestParam;
+        auto result=futilities::for_each_parallel(0, (int)nest.size(), [&](const auto& index){
+            return objFn(nest[index]);
+        });
         for(int i=0; i<nest.size(); ++i){
-            auto newFnResult=objFn(nest[i]);
-            if(newFnResult<=fnResultRef[i]){
-                fnResultRef[i]=newFnResult;
+            if(result[i]<=fnResultRef[i]){
+                fnResultRef[i]=result[i];
             }
         }
         double min=1000000;
