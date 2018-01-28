@@ -162,7 +162,7 @@ namespace cuckoo{
         double alpha=1.5;
         double pMin=.05;
         double pMax=.95;
-        SimulateNorm norm;
+        SimulateNorm norm(seed);
         std::vector<double> fnResult(n, 10000000);
         std::vector<double> bestParams(numParams, 10000000);
         std::vector<double> tmpParams(numParams, 10000000);
