@@ -3,6 +3,7 @@
 #include "FunctionalUtilities.h"
 #include <cstdlib> 
 #include "SimulateNorm.h"
+#include <tuple>
 
 namespace cuckoo{
     constexpr int optparms=0;
