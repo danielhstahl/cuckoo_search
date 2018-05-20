@@ -180,52 +180,6 @@ namespace cuckoo{
         }
         return nest[0];
     }
-
-/*
-    template< typename Array, typename ObjFn>
-    auto optimize(const ObjFn& objFn, const Array& ul, int n, int totalMC, int seed){
-        int numParams=ul.size();
-        srand(seed);
-        auto nest=getNewNest(ul, n);
-        auto newNest=getNewNest(ul, n);
-        double alpha=1.5;
-        double pMin=.05;
-        double pMax=.95;
-        SimulateNorm norm(seed);
-        std::vector<double> fnResult(n, 10000000);
-        std::vector<double> bestParams(numParams, 10000000);
-        std::vector<double> tmpParams(numParams, 10000000);
-
-        double fMin=getInitBestNest(nest, &fnResult, &bestParams, objFn);
-        double fNew;
-        for(int i=0; i<totalMC; ++i){
-
-            getCuckoos(&newNest, nest, bestParams, ul, alpha, 
-                [](){return getUniform();}, 
-                [&](){return norm.getNorm();}
-            );
-            fNew=getBestNest(
-                &nest, 
-                &fnResult, 
-                &tmpParams,//not used until 189...get overwritten below but thats fine
-                newNest,
-                objFn
-            );
-            emptyNests(&newNest, nest, ul, getPA(pMin, pMax, i, totalMC));
-            fNew=getBestNest(
-                &nest, 
-                &fnResult, 
-                &tmpParams,
-                newNest,
-                objFn
-            );
-            if(fNew<fMin){
-                fMin=fNew;
-                bestParams=tmpParams;
-            }
-        }
-        return std::make_tuple(bestParams, fMin);
-    }*/
 }
 
 
