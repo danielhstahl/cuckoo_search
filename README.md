@@ -12,6 +12,7 @@
 
 * [wiki](https://en.wikipedia.org/wiki/Cuckoo_search)
 * [matlab code](https://www.mathworks.com/matlabcentral/fileexchange/29809-cuckoo-search--cs--algorithm)
+* [Paper](http://www.airccse.org/journal/ijaia/papers/0711ijaia04.pdf)
 
 
 ## Test

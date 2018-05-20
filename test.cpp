@@ -2,7 +2,7 @@
 #include "catch.hpp"
 #include <iostream>
 #include "cuckoo.h"
-
+/*
 TEST_CASE("Test getBestNest 1", "[Cuckoo]"){
     std::vector<std::vector<double> > nest(2, std::vector<double>(2, 1.0));
     std::vector<std::vector<double> > newNest(2, std::vector<double>(2, 4.0));
@@ -42,7 +42,8 @@ TEST_CASE("Test getBestNest 2", "[Cuckoo]"){
         std::vector<double>({3.0, 4.0}), 
         std::vector<double>({5.0, 2.0})
     }));
-}
+}*/
+/*
 TEST_CASE("Test cuckoos 1 ", "[Cuckoo]"){
     std::vector<cuckoo::upper_lower<double> > ul;
     std::vector<std::vector<double> > nest(2, std::vector<double>(2, 1.0));
@@ -66,7 +67,7 @@ TEST_CASE("Test cuckoos 2", "[Cuckoo]"){
     cuckoo::getCuckoos(&newNest, nest, best, ul, 1.5, [](){return .5;}, [](){return -1.5;});
     REQUIRE(newNest[0][0]==1.0);//from matlab ref
     //std::cout<<nest[0][0]<<", "<<nest[0][1]<<", "<<nest[1][0]<<", "<<nest[1][1]<<std::endl;
-}
+}*/
 
 TEST_CASE("Test Simple Function", "[Cuckoo]"){
     std::vector<cuckoo::upper_lower<double> > ul;
@@ -74,12 +75,25 @@ TEST_CASE("Test Simple Function", "[Cuckoo]"){
     ul.push_back(bounds);
     ul.push_back(bounds);
     ul.push_back(bounds);
-    ul.push_back(bounds);
-   // ul.push_back(bounds);
     auto results=cuckoo::optimize([](const std::vector<double>& inputs){
         return inputs[0]*inputs[0]+inputs[1]*inputs[1]+inputs[2]*inputs[2]+inputs[3]*inputs[3];
-    }, ul, 20, 1000, 42);
+    }, ul, 25, 1000, .00000001, 42);
     auto params=std::get<cuckoo::optparms>(results);
     std::cout<<params[0]<<", "<<params[1]<<std::endl;
     REQUIRE(std::get<cuckoo::fnval>(results)==Approx(0.0));
+}  
+TEST_CASE("Test Rosenbrok Function", "[Cuckoo]"){
+    std::vector<cuckoo::upper_lower<double> > ul;
+    cuckoo::upper_lower<double> bounds={-4.0, 4.0};
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+
+    auto results=cuckoo::optimize([](const std::vector<double>& inputs){
+        return futilities::const_power(1-inputs[0], 2)+100*futilities::const_power(inputs[1]-futilities::const_power(inputs[0], 2), 2);
+    }, ul, 20, 10000, .00000001, 42);
+    auto params=std::get<cuckoo::optparms>(results);
+    //std::cout<<params[0]<<", "<<params[1]<<std::endl;
+    REQUIRE(std::get<cuckoo::fnval>(results)==Approx(0.0));
+    //REQUIRE(params[0]==Approx(1.0));
+    //REQUIRE(params[1]==Approx(1.0));
 }  
