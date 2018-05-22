@@ -73,6 +73,11 @@ namespace cuckoo{
             return val1.second<val2.second;//smallest to largest
         });
     }
+    template<typename Array, typename ObjFn, typename RandParams>
+    auto getNewParameterAndFn(const Array& ul, const ObjFn& objFn, const RandParams& rndParms){
+        auto parameters=rndParms(ul);
+        return std::pair<std::vector<double>, double>(parameters, objFn(parameters));
+    }
     /*template<typename Nest>
     void getBestNest(Nest* nest, const Nest& newNest){
         Nest& nestRef= *nest;
@@ -104,7 +109,7 @@ namespace cuckoo{
         int m=nestRef[0].first.size(); //number of parameters
         
         auto i=getDiscreteUniform(n);//get random parameter set
-        auto getLevyParameters=[](const auto& ult){
+        auto getLevyParameters=[&](const auto& ult){
             return getRandomLevyParameters(ult, nestRef[i].first, lambda, alpha, unif, norm);
         };
         auto levyParameters=getNewParameterAndFn(ul, objFun, getLevyParameters);
@@ -126,14 +131,10 @@ namespace cuckoo{
     }
 
 
-    template<typename Array, typename ObjFn, typename RandParams>
-    auto getNewParameterAndFn(const Array& ul, const ObjFn& objFn, const RandParams& rndParms){
-        auto parameters=rndParms(ul);
-        return std::pair<std::vector<double>, double>(parameters, objFn(parameters));
-    }
+    
     template<typename Array, typename ObjFn>
     auto getNewNest(const Array& ul, const ObjFn& objFn, int n){
-        auto getUniformParameters=[](const auto& ult){
+        auto getUniformParameters=[](const auto& ult){  //todo!  once source for this function (put in "main")
             return getRandomParameters(ult);
         };
         return futilities::for_each(0, n, [&](const auto& index){
@@ -152,8 +153,11 @@ namespace cuckoo{
         int n=nestRef.size();
         int numToKeep=(int)(p*nestRef.size());
         int startNum=n-numToKeep;
+        auto getUniformParameters=[](const auto& ult){ //todo!  once source for this function (put in "main")
+            return getRandomParameters(ult);
+        };
         for(int i=startNum; i<n; ++i){
-            nestRef[i]=getNewParameterAndFn(ul, objFn);
+            nestRef[i]=getNewParameterAndFn(ul, objFn, getUniformParameters);
         }
     }
 
