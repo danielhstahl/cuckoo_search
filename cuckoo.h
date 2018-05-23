@@ -78,18 +78,6 @@ namespace cuckoo{
         auto parameters=rndParms(ul);
         return std::pair<std::vector<double>, double>(parameters, objFn(parameters));
     }
-    /*template<typename Nest>
-    void getBestNest(Nest* nest, const Nest& newNest){
-        Nest& nestRef= *nest;
-        for(int i=0; i<nestRef.size(); ++i){
-            if(newNest[i].second<=nestRef[i].second){
-                nestRef[i].second=newNest[i].second;//replace previous function result with current
-                nestRef[i].first=newNest[i].first; //replace previous parameters with current
-            }
-        }
-        sortNest(nestRef);
- 
-    }*/
 
     template<
         typename Nest,  typename Array, typename ObjFun,
@@ -110,33 +98,19 @@ namespace cuckoo{
         
         auto i=getDiscreteUniform(n);//get random parameter set
         auto getLevyParameters=[&](const auto& ult){
-            return getRandomLevyParameters(ult, nestRef[i].first, lambda, alpha, unif, norm);
+            return getRandomLevyParameters(ult, nestRef[i].first, lambda, std::move(alpha), unif, norm);
         };
         auto levyParameters=getNewParameterAndFn(ul, objFun, getLevyParameters);
         auto j=getDiscreteUniform(n);//get random nest
         if(nestRef[j].second>levyParameters.second){
             nestRef[j]=levyParameters;
         }
-        /*for(int i=0; i<n;++i){
-            for(int j=0; j<m; ++j){
-                nestRef[i].first[j]=getTruncatedParameter(
-                    ul[j].lower, ul[j].upper, 
-                    getLevyFlight(
-                        nest[i].first[j], alpha, lambda, unif(), norm()
-                    )
-                );
-            }
-            nestRef[i].second=objFun(nestRef[i].first);
-        }*/
     }
 
 
     
-    template<typename Array, typename ObjFn>
-    auto getNewNest(const Array& ul, const ObjFn& objFn, int n){
-        auto getUniformParameters=[](const auto& ult){  //todo!  once source for this function (put in "main")
-            return getRandomParameters(ult);
-        };
+    template<typename Array, typename ObjFn, typename GetUniformParameters>
+    auto getNewNest(const Array& ul, const ObjFn& objFn, int n, const GetUniformParameters& getUniformParameters){
         return futilities::for_each(0, n, [&](const auto& index){
             return getNewParameterAndFn(ul, objFn, getUniformParameters);
         });
@@ -147,15 +121,16 @@ namespace cuckoo{
         return pMax-(pMax-pMin)*index/n;
     }
 
-    template<typename Nest, typename ObjFn, typename P, typename Array>
-    void emptyNests(Nest* newNest, const ObjFn& objFn, const Array& ul, const P& p){
+    template<typename Nest, typename ObjFn, typename P, typename Array, typename GetUniformParameters>
+    void emptyNests(
+        Nest* newNest, const ObjFn& objFn, const Array& ul, 
+        const P& p, const GetUniformParameters& getUniformParameters
+    ){
         Nest& nestRef= *newNest;
         int n=nestRef.size();
         int numToKeep=(int)(p*nestRef.size());
         int startNum=n-numToKeep;
-        auto getUniformParameters=[](const auto& ult){ //todo!  once source for this function (put in "main")
-            return getRandomParameters(ult);
-        };
+        
         for(int i=startNum; i<n; ++i){
             nestRef[i]=getNewParameterAndFn(ul, objFn, getUniformParameters);
         }
@@ -171,7 +146,10 @@ namespace cuckoo{
     auto optimize(const ObjFn& objFn, const Array& ul, int n, int totalMC, double tol, int seed){
         int numParams=ul.size();
         srand(seed);
-        auto nest=getNewNest(ul, objFn, n);
+        auto getUniformParameters=[](const auto& ult){
+            return getRandomParameters(ult);
+        };
+        auto nest=getNewNest(ul, objFn, n, getUniformParameters);
         //auto newNest=getNewNest(ul, objFn, n);
         double lambda=1.5;
         double alphaMin=.01;
@@ -186,21 +164,14 @@ namespace cuckoo{
         auto normL=[&](){return norm.getNorm();};
         while(i<totalMC&&fMin>tol){
             /**Completely overwrites newNest*/
-            //newNest now has the previous values from nest with levy flights added
             getCuckoos(&nest, objFn, ul, 
                 lambda, 
                 getAlpha(i, totalMC, alphaMin, alphaMax),
                 unifL, 
                 normL
             );
-            //compare previous nests with cuckoo nests and sort results
-            //nest now has the best of nest and newNest
-            /*getBestNest(
-                &nest, 
-                newNest
-            );*/
-            //remove bottom "p" nests and resimulate.
-            emptyNests(&nest, objFn, ul, getPA(pMin, pMax, i, totalMC));
+            sortNest(nest);
+            emptyNests(&nest, objFn, ul, getPA(pMin, pMax, i, totalMC), getUniformParameters);
             sortNest(nest);
             fMin=nest[0].second;
 
