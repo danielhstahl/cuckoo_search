@@ -139,8 +139,8 @@ namespace cuckoo{
         sortNest(nest);
         auto newNest=getNewNest(ul, objFn, n);
         double lambda=1.5;
-        double alphaMin=.01;
-        double alphaMax=.5;
+        /*double alphaMin=.01;
+        double alphaMax=.5;*/
         double pMin=.05;
         double pMax=.5;
         SimulateNorm norm(seed);
@@ -157,7 +157,6 @@ namespace cuckoo{
                 nest, nest[0].first, //the current best nest
                 objFn, ul, 
                 lambda, 
-                getAlpha(i, totalMC, alphaMin, alphaMax),
                 unifL, 
                 normL
             );
