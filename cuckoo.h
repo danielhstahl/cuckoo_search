@@ -67,29 +67,34 @@ namespace cuckoo{
         sortNest(nestRef);
  
     }
+    template<typename Parm>
+    auto getStepSize(const Parm& curr, const Parm& best){
+        return .01*(curr-best);//.01 comes from matlab code
+    }
 
     template<
         typename Nest,  typename Array, typename ObjFun,
-        typename U, typename Norm, typename Unif
+        typename U, typename Norm, typename Unif,
+        typename BestParameter
     >
     void getCuckoos(
         Nest* newNest, const Nest& nest, 
+        const BestParameter& bP,
         const ObjFun& objFun,
         const Array& ul, 
         const U& lambda, 
-        U&& alpha, 
         const Unif& unif,
         const Norm& norm
     ){
-        int n=nest.size();
-        int m=nest[0].first.size();
+        int n=nest.size(); //num nests
+        int m=nest[0].first.size(); //num parameters
         Nest& nestRef= *newNest;
         for(int i=0; i<n;++i){
             for(int j=0; j<m; ++j){
                 nestRef[i].first[j]=getTruncatedParameter(
                     ul[j].lower, ul[j].upper, 
                     getLevyFlight(
-                        nest[i].first[j], alpha, lambda, unif(), norm()
+                        nest[i].first[j], getStepSize(nest[i].first[j], bP[j]), lambda, unif(), norm()
                     )
                 );
             }
@@ -126,21 +131,16 @@ namespace cuckoo{
         }
     }
 
-    double getAlpha(int index, int totalMC, double alphaMin, double alphaMax){
-        double c=log(alphaMin/alphaMax)/totalMC;
-        return alphaMax*exp(c*index);
-    }
-
-
     template< typename Array, typename ObjFn>
     auto optimize(const ObjFn& objFn, const Array& ul, int n, int totalMC, double tol, int seed){
         int numParams=ul.size();
         srand(seed);
         auto nest=getNewNest(ul, objFn, n);
+        sortNest(nest);
         auto newNest=getNewNest(ul, objFn, n);
         double lambda=1.5;
-        double alphaMin=.01;
-        double alphaMax=.5;
+        /*double alphaMin=.01;
+        double alphaMax=.5;*/
         double pMin=.05;
         double pMax=.5;
         SimulateNorm norm(seed);
@@ -152,9 +152,11 @@ namespace cuckoo{
         while(i<totalMC&&fMin>tol){
             /**Completely overwrites newNest*/
             //newNest now has the previous values from nest with levy flights added
-            getCuckoos(&newNest, nest, objFn, ul, 
+            getCuckoos(
+                &newNest, 
+                nest, nest[0].first, //the current best nest
+                objFn, ul, 
                 lambda, 
-                getAlpha(i, totalMC, alphaMin, alphaMax),
                 unifL, 
                 normL
             );
