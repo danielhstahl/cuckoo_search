@@ -139,12 +139,9 @@ namespace cuckoo{
         sortNest(nest);
         auto newNest=getNewNest(ul, objFn, n);
         double lambda=1.5;
-        /*double alphaMin=.01;
-        double alphaMax=.5;*/
         double pMin=.05;
         double pMax=.5;
         SimulateNorm norm(seed);
-        
         double fMin=2;
         int i=0;
         auto unifL=[](){return getUniform();};
