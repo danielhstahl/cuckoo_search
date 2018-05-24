@@ -97,3 +97,35 @@ TEST_CASE("Test Rosenbrok Function", "[Cuckoo]"){
     //REQUIRE(params[0]==Approx(1.0));
     //REQUIRE(params[1]==Approx(1.0));
 }  
+TEST_CASE("Test u^2 Function", "[Cuckoo]"){
+    std::vector<cuckoo::upper_lower<double> > ul;
+    cuckoo::upper_lower<double> bounds={-5.0, 5.0};
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    ul.push_back(bounds);
+    int numNests=25;
+    int maxMC=25000;
+    auto results=cuckoo::optimize([](const std::vector<double>& inputs){
+        return futilities::sum(inputs, [](const auto& v, const auto& index){
+            return futilities::const_power(v-1.0, 2);
+        });
+    }, ul, numNests, maxMC, .00000001, 42);
+    auto params=std::get<cuckoo::optparms>(results);
+    //std::cout<<params[0]<<", "<<params[1]<<std::endl;
+    std::cout<<"obj fn: "<<std::get<cuckoo::fnval>(results)<<std::endl;
+    REQUIRE(std::get<cuckoo::fnval>(results)==Approx(0.0));
+    //REQUIRE(params[0]==Approx(1.0));
+    //REQUIRE(params[1]==Approx(1.0));
+}  
