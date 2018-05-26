@@ -4,51 +4,11 @@
 #include <cstdlib> 
 #include "SimulateNorm.h"
 #include <tuple>
+#include "utils.h"
 
 /**Based off the following paper: http://www.airccse.org/journal/ijaia/papers/0711ijaia04.pdf*/
 namespace cuckoo{
-    constexpr int optparms=0;
-    constexpr int fnval=1;
-    template<typename T>
-    struct upper_lower{
-        T upper;
-        T lower;
-        upper_lower(T&& lower_, T&& upper_){
-            upper=upper_;
-            lower=lower_;
-        }
-    };
-
-    template<typename T, typename U>
-    auto getRandomParameter(const T& lower, const T& upper, const U& rand){
-        return lower+rand*(upper-lower);
-    }
-
-    template<typename T, typename U>
-    auto getTruncatedParameter(const T& lower, const T& upper, const U& result){
-        return result>upper?upper:(result<lower?lower:result);
-    }
-
-    template<typename T,  typename U>
-    auto getLevy(const T& alpha, const U& rand){
-        return pow(rand, -1.0/alpha);
-    }
-
-    template<typename T, typename U>
-    auto getLevyFlight(const T& currVal, const T& stepSize, const T& lambda, U&& rand, U&& normRand){
-        return currVal+stepSize*getLevy(lambda, rand)*normRand;
-    }
-
-    auto getUniform(){
-        return (double)rand()/RAND_MAX;
-    }
-    template<typename Array>
-    auto getRandomParameters(const Array& ul){
-        return futilities::for_each(0, (int)ul.size(), [&](const auto& index){
-            return getRandomParameter(ul[index].lower, ul[index].upper, getUniform());
-        });
-    }
-
+    
     template<typename Nest>
     void sortNest(Nest& nestRef){
         std::sort(nestRef.begin(), nestRef.end(), [](const auto& val1, const auto& val2){
@@ -91,9 +51,9 @@ namespace cuckoo{
         Nest& nestRef= *newNest;
         for(int i=0; i<n;++i){
             for(int j=0; j<m; ++j){
-                nestRef[i].first[j]=getTruncatedParameter(
+                nestRef[i].first[j]=swarm_utils::getTruncatedParameter(
                     ul[j].lower, ul[j].upper, 
-                    getLevyFlight(
+                    swarm_utils::getLevyFlight(
                         nest[i].first[j], getStepSize(nest[i].first[j], bP[j]), lambda, unif(), norm()
                     )
                 );
@@ -103,15 +63,11 @@ namespace cuckoo{
     }
 
 
-    template<typename Array, typename ObjFn>
-    auto getNewParameterAndFn(const Array& ul, const ObjFn& objFn){
-        auto parameters=getRandomParameters(ul);
-        return std::pair<std::vector<double>, double>(parameters, objFn(parameters));
-    }
+    
     template<typename Array, typename ObjFn>
     auto getNewNest(const Array& ul, const ObjFn& objFn, int n){
         return futilities::for_each(0, n, [&](const auto& index){
-            return getNewParameterAndFn(ul, objFn);
+            return swarm_utils::getNewParameterAndFn(ul, objFn);
         });
     }
 
@@ -127,7 +83,7 @@ namespace cuckoo{
         int numToKeep=(int)(p*nestRef.size());
         int startNum=n-numToKeep;
         for(int i=startNum; i<n; ++i){
-            nestRef[i]=getNewParameterAndFn(ul, objFn);
+            nestRef[i]=swarm_utils::getNewParameterAndFn(ul, objFn);
         }
     }
 
@@ -144,7 +100,7 @@ namespace cuckoo{
         SimulateNorm norm(seed);
         double fMin=2;
         int i=0;
-        auto unifL=[](){return getUniform();};
+        auto unifL=[](){return swarm_utils::getUniform();};
         auto normL=[&](){return norm.getNorm();};
         while(i<totalMC&&fMin>tol){
             /**Completely overwrites newNest*/
