@@ -28,8 +28,8 @@ namespace cuckoo{
  
     }
     template<typename Parm>
-    auto getStepSize(const Parm& curr, const Parm& best){
-        return .01*(curr-best);//.01 comes from matlab code
+    auto getStepSize(const Parm& curr, const Parm& best, const Parm& lower, const Parm& upper){
+        return .01*(upper-lower)*(curr-best);//.01 comes from matlab code
     }
 
     template<
@@ -54,7 +54,9 @@ namespace cuckoo{
                 nestRef[i].first[j]=swarm_utils::getTruncatedParameter(
                     ul[j].lower, ul[j].upper, 
                     swarm_utils::getLevyFlight(
-                        nest[i].first[j], getStepSize(nest[i].first[j], bP[j]), lambda, unif(), norm()
+                        nest[i].first[j], 
+                        getStepSize(nest[i].first[j], bP[j], ul[j].lower, ul[j].upper), 
+                        lambda, unif(), norm()
                     )
                 );
             }
