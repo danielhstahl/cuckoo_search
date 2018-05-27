@@ -66,10 +66,10 @@ namespace cuckoo{
 
 
     
-    template<typename Array, typename ObjFn>
-    auto getNewNest(const Array& ul, const ObjFn& objFn, int n){
+    template<typename Array, typename ObjFn, typename Rand>
+    auto getNewNest(const Array& ul, const ObjFn& objFn, const Rand& rnd, int n){
         return futilities::for_each(0, n, [&](const auto& index){
-            return swarm_utils::getNewParameterAndFn(ul, objFn);
+            return swarm_utils::getNewParameterAndFn(ul, objFn, rnd);
         });
     }
 
@@ -78,14 +78,14 @@ namespace cuckoo{
         return pMax-(pMax-pMin)*index/n;
     }
 
-    template<typename Nest, typename ObjFn, typename P, typename Array>
-    void emptyNests(Nest* newNest, const ObjFn& objFn, const Array& ul, const P& p){
+    template<typename Nest, typename ObjFn, typename P, typename Array, typename Rand>
+    void emptyNests(Nest* newNest, const ObjFn& objFn, const Rand& rnd, const Array& ul, const P& p){
         Nest& nestRef= *newNest;
         int n=nestRef.size();
         int numToKeep=(int)(p*nestRef.size());
         int startNum=n-numToKeep;
         for(int i=startNum; i<n; ++i){
-            nestRef[i]=swarm_utils::getNewParameterAndFn(ul, objFn);
+            nestRef[i]=swarm_utils::getNewParameterAndFn(ul, objFn, rnd);
         }
     }
 
@@ -93,17 +93,21 @@ namespace cuckoo{
     auto optimize(const ObjFn& objFn, const Array& ul, int n, int totalMC, double tol, int seed){
         int numParams=ul.size();
         srand(seed);
-        auto nest=getNewNest(ul, objFn, n);
-        sortNest(nest);
-        auto newNest=getNewNest(ul, objFn, n);
+        SimulateNorm norm(seed);
+        auto unifL=[](){return swarm_utils::getUniform();};
+        auto normL=[&](){return norm.getNorm();};
+        auto nest=getNewNest(ul, objFn,normL, n);
         double lambda=1.5;
         double pMin=.05;
         double pMax=.5;
-        SimulateNorm norm(seed);
+        
         double fMin=2;
         int i=0;
-        auto unifL=[](){return swarm_utils::getUniform();};
-        auto normL=[&](){return norm.getNorm();};
+
+        sortNest(nest);
+        auto newNest=getNewNest(ul, objFn,normL, n);
+       
+       
         while(i<totalMC&&fMin>tol){
             /**Completely overwrites newNest*/
             //newNest now has the previous values from nest with levy flights added
@@ -122,7 +126,7 @@ namespace cuckoo{
                 newNest
             );
             //remove bottom "p" nests and resimulate.
-            emptyNests(&nest, objFn, ul, getPA(pMin, pMax, i, totalMC));
+            emptyNests(&nest, objFn, normL, ul, getPA(pMin, pMax, i, totalMC));
             sortNest(nest);
             fMin=nest[0].second;
 

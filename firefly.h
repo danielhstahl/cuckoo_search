@@ -47,16 +47,13 @@ namespace firefly{
                 }
             }
         }
-        /*for(int i=0; i<n; ++i){
-            firefliesRef[i].second=objFun(firefliesRef[i].first);
-        }*/
     }
 
 
-    template<typename Array, typename ObjFn>
-    auto getInitialFirefly(const Array& ul, const ObjFn& objFn, int n){
+    template<typename Array, typename ObjFn, typename Rand>
+    auto getInitialFirefly(const Array& ul, const ObjFn& objFn, const Rand& rnd, int n){
         return futilities::for_each(0, n, [&](const auto& index){
-            return swarm_utils::getNewParameterAndFn(ul, objFn);
+            return swarm_utils::getNewParameterAndFn(ul, objFn, rnd);
         });
     }
 
@@ -78,8 +75,11 @@ namespace firefly{
         const double delta=.97;
         double deltaT=delta;
         SimulateNorm norm(seed);
+       
+        auto unifL=[](){return swarm_utils::getUniform()-.5;}; //to keep uniform
+
+        auto fireflies=getInitialFirefly(ul, objFn, unifL, n);
         auto normL=[&](){return norm.getNorm();};
-        auto fireflies=getInitialFirefly(ul, objFn, n);
         sortNest(fireflies);
         for(int i=0; i<totalMC; ++i){
             

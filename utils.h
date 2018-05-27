@@ -12,12 +12,12 @@ namespace swarm_utils{
     }
     template<typename T, typename U>
     auto getRandomParameter(const T& lower, const T& upper, const U& rand){
-        return lower+rand*(upper-lower);
+        return (upper+lower)*.5+(upper-lower)*rand; //reflect that the middle is more likely than the edges
     }
-    template<typename Array>
-    auto getRandomParameters(const Array& ul){
+    template<typename Array, typename Rand>
+    auto getRandomParameters(const Array& ul, const Rand& rand){
         return futilities::for_each(0, (int)ul.size(), [&](const auto& index){
-            return getRandomParameter(ul[index].lower, ul[index].upper, getUniform());
+            return getRandomParameter(ul[index].lower, ul[index].upper, rand());
         });
     }
 
@@ -30,9 +30,9 @@ namespace swarm_utils{
     auto getLevyFlight(const T& currVal, const T& stepSize, const T& lambda, U&& rand, U&& normRand){
         return currVal+stepSize*getLevy(lambda, rand)*normRand;
     }
-    template<typename Array, typename ObjFn>
-    auto getNewParameterAndFn(const Array& ul, const ObjFn& objFn){
-        auto parameters=swarm_utils::getRandomParameters(ul);
+    template<typename Array, typename ObjFn, typename Rand>
+    auto getNewParameterAndFn(const Array& ul, const ObjFn& objFn, const Rand& rand){
+        auto parameters=swarm_utils::getRandomParameters(ul, rand);
         return std::pair<std::vector<double>, double>(parameters, objFn(parameters));
     }
     constexpr int optparms=0;
