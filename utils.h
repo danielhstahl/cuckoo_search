@@ -12,7 +12,7 @@ namespace swarm_utils{
     }
     template<typename T, typename U>
     auto getRandomParameter(const T& lower, const T& upper, const U& rand){
-        return (upper+lower)*.5+(upper-lower)*rand; //reflect that the middle is more likely than the edges
+        return (upper+lower)*.5+(upper-lower)*.5*rand; //reflect that the middle is more likely than the edges
     }
     template<typename Array, typename Rand>
     auto getRandomParameters(const Array& ul, const Rand& rand){

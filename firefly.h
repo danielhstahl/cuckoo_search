@@ -76,7 +76,7 @@ namespace firefly{
         double deltaT=delta;
         SimulateNorm norm(seed);
        
-        auto unifL=[](){return swarm_utils::getUniform()-.5;}; //to keep uniform
+        auto unifL=[](){return 2*swarm_utils::getUniform()-1;}; //to keep uniform
 
         auto fireflies=getInitialFirefly(ul, objFn, unifL, n);
         auto normL=[&](){return norm.getNorm();};
