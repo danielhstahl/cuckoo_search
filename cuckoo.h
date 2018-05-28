@@ -98,7 +98,7 @@ namespace cuckoo{
         auto newNest=getNewNest(ul, objFn, n);
         double lambda=1.5;
         double pMin=.05;
-        double pMax=.95; //I'm hoping this improves conversion :|
+        double pMax=.5;
         SimulateNorm norm(seed);
         double fMin=2;
         int i=0;
